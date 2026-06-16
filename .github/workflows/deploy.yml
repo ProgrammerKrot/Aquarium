@@ -21,6 +21,12 @@ jobs:
           script: |
             set -e
 
+            # Ensure git is installed
+            if ! command -v git &>/dev/null; then
+              apt-get update -qq
+              apt-get install -y -qq git
+            fi
+
             # Clone repo on first run, or pull latest changes
             if [ ! -d "/opt/aquarium/.git" ]; then
               git clone https://github.com/ProgrammerKrot/Aquarium.git /opt/aquarium
