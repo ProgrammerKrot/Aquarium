@@ -13,11 +13,14 @@ jobs:
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: 22
+          envs: GH_PAT
           script: |
             set -e
 
@@ -28,14 +31,14 @@ jobs:
             fi
 
             # Clone repo on first run, or pull latest changes
-            export GIT_TERMINAL_PROMPT=0
+            REPO_URL="https://${GH_PAT}@github.com/ProgrammerKrot/Aquarium.git"
             if [ ! -d "/opt/aquarium/.git" ]; then
-              git clone https://github.com/ProgrammerKrot/Aquarium.git /opt/aquarium
+              git clone "$REPO_URL" /opt/aquarium
             fi
 
             cd /opt/aquarium
-            git fetch origin main
-            git reset --hard origin/main
+            git fetch "https://${GH_PAT}@github.com/ProgrammerKrot/Aquarium.git" main
+            git reset --hard FETCH_HEAD
 
             # Rebuild and restart containers
             docker compose down --remove-orphans
