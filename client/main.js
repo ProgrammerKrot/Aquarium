@@ -1,12 +1,14 @@
 "use strict";
 
 /* ═══════════════════════════════════════════════════
-   CompanionMatch — main.js  v0.4.0
+   Aquarium — main.js  v0.5.0
    Auth · Geolocation filter · Bios · Dynamic user id
+   Fish = clients looking for a fish job
+   Coral Opportunist = actors offering fish jobs
    ═══════════════════════════════════════════════════ */
 
 const API_BASE    = "";
-const LS_KEY      = "companionmatch_user";
+const LS_KEY      = "aquarium_user";
 
 // ── Auth state ────────────────────────────────────
 /**
@@ -190,7 +192,7 @@ async function doRegister() {
       const nacionalidade = document.getElementById("reg-nacionalidade").value.trim();
       const genero        = document.getElementById("reg-genero").value;
       const bio           = document.getElementById("reg-bio-ator").value.trim() || null;
-      if (!idade || !nacionalidade) { showToast("Age and nationality are required for Providers"); return; }
+      if (!idade || !nacionalidade) { showToast("Age and nationality are required for Coral Opportunists"); return; }
       created = await apiCreateAtor({ nome, idade, nacionalidade, genero, bio, latitude: lat, longitude: lon, telegram });
       _allAtores   = [];
       _allClientes = [];
@@ -238,8 +240,16 @@ async function enterApp() {
   const segProvider = document.getElementById("seg-provider");
   segCustomer.disabled = isAtor;
   segProvider.disabled = !isAtor;
-  segCustomer.title = isAtor  ? "Customer mode is for Client accounts" : "";
-  segProvider.title = !isAtor ? "Provider mode is for Provider accounts" : "";
+  segCustomer.title = isAtor  ? "Fish mode is for Fish accounts only" : "";
+  segProvider.title = !isAtor ? "Coral Opportunist mode is for Coral Opportunist accounts only" : "";
+
+  // Update role info banner
+  const banner = document.getElementById("role-info-text");
+  if (banner) {
+    banner.innerHTML = isAtor
+      ? "🪸 You are a <strong>Coral Opportunist</strong> — accept fish jobs from Fish below."
+      : "🐠 You are a <strong>Fish</strong> — swipe to find a Coral Opportunist for your fish job.";
+  }
 
   const defaultMode = isAtor ? "provider" : "customer";
   setSegment(defaultMode);
@@ -402,7 +412,7 @@ function showMatchOverlay(actor, id_pedido) {
 
   avatarEl.style.backgroundImage = actor.avatar_url ? `url('${actor.avatar_url}')` : "";
   avatarEl.classList.toggle("has-image", !!actor.avatar_url);
-  subText.textContent = `${actor.nome} is ready to meet you!`
+  subText.textContent = `${actor.nome} accepted your fish job!`
     + (id_pedido ? ` · Order #${id_pedido}` : "");
   overlay.classList.remove("hidden");
 }
@@ -421,7 +431,7 @@ async function loadMatches() {
   try {
     const matches = await apiGetMatches();
     if (!matches.length) {
-      list.innerHTML = `<li class="list-placeholder">No matches yet — keep swiping!</li>`;
+      list.innerHTML = `<li class="list-placeholder">No fish jobs yet — keep swiping!</li>`;
       return;
     }
     list.innerHTML = matches.map(m => {
@@ -456,7 +466,7 @@ async function loadProviderRequests() {
   try {
     const requests = await apiGetRequests();
     if (!requests.length) {
-      list.innerHTML = `<li class="list-placeholder">No requests yet.<br>Requests appear here when a Customer matches with you.<br>Ask someone to log in as a Customer and swipe right on you!</li>`;
+      list.innerHTML = `<li class="list-placeholder">No fish jobs yet.<br>Fish jobs appear here when a Fish matches with you.<br>Ask someone to log in as a Fish and swipe right on you!</li>`;
       return;
     }
     list.innerHTML = requests.map(req => {

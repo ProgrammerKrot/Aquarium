@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Companion Match</title>
+  <title>Aquarium</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -16,8 +16,14 @@
 
     <div class="auth-logo">
       <div class="auth-logo-icon"></div>
-      <span class="auth-logo-name">CompanionMatch</span>
+      <span class="auth-logo-name">Aquarium</span>
     </div>
+
+    <!-- Info blurb on auth -->
+    <p class="auth-tagline">
+      <strong>🐠 Fish</strong> are looking for someone to spend time with.<br>
+      <strong>🪸 Coral Opportunists</strong> offer their companionship &amp; skills.
+    </p>
 
     <!-- Tab row -->
     <div class="auth-tabs">
@@ -28,19 +34,19 @@
     <!-- ── LOGIN ── -->
     <div id="auth-login" class="auth-form">
       <div class="type-selector">
-        <button class="type-btn type-active" id="login-type-cliente" onclick="setLoginType('cliente')">Customer</button>
-        <button class="type-btn"             id="login-type-ator"    onclick="setLoginType('ator')">Provider</button>
+        <button class="type-btn type-active" id="login-type-cliente" onclick="setLoginType('cliente')">🐠 Fish</button>
+        <button class="type-btn"             id="login-type-ator"    onclick="setLoginType('ator')">🪸 Coral Opportunist</button>
       </div>
       <label class="auth-label">Select account</label>
       <select id="login-select" class="auth-select"></select>
-      <button class="auth-submit-btn" onclick="doLogin()">Enter App →</button>
+      <button class="auth-submit-btn" onclick="doLogin()">Enter Aquarium →</button>
     </div>
 
     <!-- ── REGISTER ── -->
     <div id="auth-register" class="auth-form hidden">
       <div class="type-selector">
-        <button class="type-btn type-active" id="reg-type-cliente" onclick="setRegType('cliente')">Customer</button>
-        <button class="type-btn"             id="reg-type-ator"    onclick="setRegType('ator')">Provider</button>
+        <button class="type-btn type-active" id="reg-type-cliente" onclick="setRegType('cliente')">🐠 Fish</button>
+        <button class="type-btn"             id="reg-type-ator"    onclick="setRegType('ator')">🪸 Coral Opportunist</button>
       </div>
 
       <label class="auth-label">Name</label>
@@ -52,7 +58,7 @@
       <label class="auth-label">Phone</label>
       <input  id="reg-telefone" class="auth-input" type="tel"    placeholder="+351 900 000 000" />
 
-      <!-- Actor-only fields -->
+      <!-- Coral Opportunist-only fields -->
       <div id="reg-ator-fields" class="hidden">
         <label class="auth-label">Age</label>
         <input  id="reg-idade"         class="auth-input" type="number" placeholder="Age" min="18" />
@@ -64,14 +70,14 @@
           <option value="female">Female</option>
           <option value="male">Male</option>
         </select>
-        <label class="auth-label">What I can do (bio)</label>
-        <textarea id="reg-bio-ator" class="auth-textarea" placeholder="Describe your skills and specialities…" rows="3"></textarea>
+        <label class="auth-label">My fish job skills (bio)</label>
+        <textarea id="reg-bio-ator" class="auth-textarea" placeholder="Describe what fish jobs you can handle…" rows="3"></textarea>
       </div>
 
-      <!-- Client-only fields -->
+      <!-- Fish-only fields -->
       <div id="reg-cliente-fields">
-        <label class="auth-label">What I'm looking for (bio)</label>
-        <textarea id="reg-bio-cliente" class="auth-textarea" placeholder="Describe the kind of companion you need…" rows="3"></textarea>
+        <label class="auth-label">My fish job request (bio)</label>
+        <textarea id="reg-bio-cliente" class="auth-textarea" placeholder="Describe the fish job you need done…" rows="3"></textarea>
       </div>
 
       <!-- Telegram — shared -->
@@ -103,7 +109,7 @@
   <header class="app-header">
     <div class="brand-mark">
       <div class="brand-icon"></div>
-      <span class="brand-name">CompanionMatch</span>
+      <span class="brand-name">Aquarium</span>
     </div>
     <div class="header-right">
       <span class="user-chip" id="user-chip"></span>
@@ -111,17 +117,22 @@
     </div>
   </header>
 
+  <!-- Role info banner -->
+  <div class="role-info-banner" id="role-info-banner">
+    <span id="role-info-text"></span>
+  </div>
+
   <!-- Segmented Control -->
   <div class="segment-wrap">
     <div class="segment-capsule" role="tablist">
-      <button id="seg-customer" class="seg-btn seg-active" role="tab" aria-selected="true"  onclick="setSegment('customer')">Customer</button>
-      <button id="seg-provider" class="seg-btn"            role="tab" aria-selected="false" onclick="setSegment('provider')">Provider</button>
+      <button id="seg-customer" class="seg-btn seg-active" role="tab" aria-selected="true"  onclick="setSegment('customer')">🐠 Fish</button>
+      <button id="seg-provider" class="seg-btn"            role="tab" aria-selected="false" onclick="setSegment('provider')">🪸 Coral Opportunist</button>
     </div>
   </div>
 
-  <!-- ── CUSTOMER MODE ── -->
+  <!-- ── FISH MODE ── -->
 
-  <!-- Radius Filter (Customer only) -->
+  <!-- Radius Filter (Fish only) -->
   <div class="radius-control" id="radius-control">
     <span class="radius-label">Radius: <strong id="radius-value">50</strong> km</span>
     <input type="range" id="radius-slider" class="radius-slider"
@@ -154,7 +165,7 @@
 
       <!-- Action buttons -->
       <div class="action-row">
-        <button class="action-btn btn-dislike" id="btn-dislike" onclick="handleSwipe('dislike')" aria-label="Dislike">
+        <button class="action-btn btn-dislike" id="btn-dislike" onclick="handleSwipe('dislike')" aria-label="Pass">
           <svg class="btn-icon" viewBox="0 0 40 40" fill="none">
             <line x1="8"  y1="8"  x2="32" y2="32" stroke="#1A1A1A" stroke-width="5" stroke-linecap="square"/>
             <line x1="32" y1="8"  x2="8"  y2="32" stroke="#1A1A1A" stroke-width="5" stroke-linecap="square"/>
@@ -172,7 +183,7 @@
     <!-- End state -->
     <div class="end-state hidden" id="end-state">
       <div class="end-icon"></div>
-      <p class="end-label">No companions nearby</p>
+      <p class="end-label">No Coral Opportunists nearby</p>
       <p class="end-sub">Try expanding the radius or reset your swipes</p>
       <button class="reset-btn" onclick="resetSwipes()">↺ Reset swipes</button>
     </div>
@@ -181,25 +192,25 @@
 
   <!-- Matches Panel -->
   <section class="matches-panel hidden" id="matches-panel">
-    <h2 class="panel-heading">Your Matches</h2>
+    <h2 class="panel-heading">Your Fish Jobs</h2>
     <ul class="matches-list" id="matches-list"></ul>
   </section>
 
-  <!-- ── PROVIDER MODE ── -->
+  <!-- ── CORAL OPPORTUNIST MODE ── -->
   <section class="provider-panel hidden" id="provider-panel">
-    <h2 class="panel-heading">Incoming Requests</h2>
+    <h2 class="panel-heading">Incoming Fish Jobs</h2>
     <ul class="requests-list" id="requests-list"></ul>
   </section>
 
-  <!-- Bottom Nav (Customer only) -->
+  <!-- Bottom Nav (Fish only) -->
   <nav class="bottom-nav" id="bottom-nav">
     <button class="nav-btn nav-active" id="nav-swipe"   onclick="showCustomerView('swipe')"   aria-label="Discover">
       <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="1" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="11" r="3" stroke="currentColor" stroke-width="2"/></svg>
       <span>Discover</span>
     </button>
-    <button class="nav-btn"            id="nav-matches" onclick="showCustomerView('matches')" aria-label="Matches">
+    <button class="nav-btn"            id="nav-matches" onclick="showCustomerView('matches')" aria-label="My Fish Jobs">
       <svg viewBox="0 0 24 24" fill="none"><path d="M12 21L10.55 19.7C5.4 15.1 2 12.08 2 8.5C2 5.42 4.42 3 7.5 3C9.24 3 10.91 3.81 12 5.09C13.09 3.81 14.76 3 16.5 3C19.58 3 22 5.42 22 8.5C22 12.08 18.6 15.1 13.45 19.7L12 21Z" stroke="currentColor" stroke-width="2"/></svg>
-      <span>Matches</span>
+      <span>My Fish Jobs</span>
     </button>
   </nav>
 
@@ -209,7 +220,7 @@
 <div class="match-overlay hidden" id="match-overlay">
   <div class="match-card">
     <div class="match-avatar-lg" id="match-avatar-lg"></div>
-    <p class="match-title">It's a Match!</p>
+    <p class="match-title">Fish Job Matched!</p>
     <p class="match-sub" id="match-sub-text"></p>
     <button class="match-close-btn" onclick="closeMatchOverlay()">Continue</button>
   </div>
