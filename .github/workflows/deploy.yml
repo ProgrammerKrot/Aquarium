@@ -1,0 +1,39 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: SSH Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
+          script: |
+            set -e
+
+            # Clone repo on first run, or pull latest changes
+            if [ ! -d "/opt/aquarium/.git" ]; then
+              git clone https://github.com/ProgrammerKrot/Aquarium.git /opt/aquarium
+            fi
+
+            cd /opt/aquarium
+            git fetch origin main
+            git reset --hard origin/main
+
+            # Rebuild and restart containers
+            docker compose down --remove-orphans
+            docker compose up --build -d
+
+            # Wait a moment and show running containers
+            sleep 5
+            docker compose ps
