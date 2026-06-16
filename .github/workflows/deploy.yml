@@ -28,6 +28,7 @@ jobs:
             fi
 
             # Clone repo on first run, or pull latest changes
+            export GIT_TERMINAL_PROMPT=0
             if [ ! -d "/opt/aquarium/.git" ]; then
               git clone https://github.com/ProgrammerKrot/Aquarium.git /opt/aquarium
             fi
