@@ -851,7 +851,7 @@ html, body {
 .swipe-card.exit-right { animation: swipe-right 0.28s ease-in forwards; }
 
 @media (min-width: 500px) {
-  body:not(.gazette-page):not(.spa-landing) {
+  body.app-mode {
     display: flex;
     align-items: flex-start;
     justify-content: center;
@@ -860,31 +860,25 @@ html, body {
     background: #EBEBEB;
   }
 
-  .mobile-shell {
+  body.app-mode .mobile-shell {
     min-height: 820px;
     height: 820px;
     margin-bottom: 32px;
-    border: var(--border-action);
-    border-radius: 8px;
+    border: 2px solid #1A1A1A;
+    border-radius: 0;
     overflow: hidden;
   }
-
-  .auth-screen { background: #EBEBEB; }
 }
 
-.gazette-page {
-  min-height: 100svh;
-  background: #EBEBEB;
-  color: var(--ink);
-}
-
-body.spa-landing {
+body.landing-mode {
+  margin: 0;
   background: #FFFFFF;
   color: #1A1A1A;
   font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
 }
 
-.ambient-background {
+.ambient-bg {
   position: fixed;
   inset: 0;
   z-index: -1;
@@ -895,41 +889,44 @@ body.spa-landing {
 
 .ambient-card {
   position: absolute;
-  bottom: -120px;
-  width: min(200px, 38vw);
+  bottom: -110px;
+  width: min(190px, 36vw);
   padding: 7px 9px;
   border: 1px solid #CCCCCC;
-  background: rgba(255, 255, 255, 0.35);
+  background: #FFFFFF;
   opacity: 0.35;
   font-family: Arial, Helvetica, sans-serif;
   font-size: 9px;
   line-height: 1.35;
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  animation: floatUp linear infinite;
+  animation: driftUp linear infinite;
 }
 
 .ambient-card p {
   margin-bottom: 2px;
 }
 
-@keyframes floatUp {
+@keyframes driftUp {
   0%   { transform: translateY(0) translateX(0); opacity: 0; }
-  10%  { opacity: 0.35; }
-  90%  { opacity: 0.35; }
-  100% { transform: translateY(-110vh) translateX(12px); opacity: 0; }
+  8%   { opacity: 0.35; }
+  92%  { opacity: 0.35; }
+  100% { transform: translateY(-115vh) translateX(16px); opacity: 0; }
 }
 
-.gazette-view {
+.landing-view {
   position: relative;
   z-index: 1;
-  min-height: 100svh;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-height: 100vh;
+  padding: 16px 0 40px;
 }
 
-.spa-column {
+.landing-column {
   width: min(100%, 420px);
-  margin: 0 auto;
-  padding: 20px 16px 48px;
+  padding: 0 16px 32px;
   background: #FFFFFF;
   border-left: 1px solid #1A1A1A;
   border-right: 1px solid #1A1A1A;
@@ -937,7 +934,8 @@ body.spa-landing {
 
 .gazette-header {
   text-align: center;
-  margin-bottom: 18px;
+  padding-top: 8px;
+  margin-bottom: 16px;
 }
 
 .gazette-masthead {
@@ -965,18 +963,19 @@ body.spa-landing {
 }
 
 .auth-view {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
-.auth-view .auth-card {
+.landing-column .auth-card {
   width: 100%;
   max-width: none;
   border: 2px solid #1A1A1A;
   border-radius: 0;
   background: #FFFFFF;
+  padding: 24px 20px 20px;
 }
 
-.auth-view .auth-card.auth-flash {
+.landing-column .auth-card.auth-flash {
   animation: authFlash 0.9s ease;
 }
 
@@ -991,7 +990,7 @@ body.spa-landing {
 }
 
 .classifieds-heading {
-  font-size: var(--fs-sm);
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1046,12 +1045,13 @@ body.spa-landing {
 }
 
 @media (min-width: 500px) {
-  body.spa-landing {
+  body.landing-mode {
     background: #EBEBEB;
-    padding: 24px 16px 40px;
+    padding: 24px 0 40px;
   }
 
-  .spa-column {
+  .landing-column {
     border: 2px solid #1A1A1A;
+    padding: 0 20px 32px;
   }
 }

@@ -194,19 +194,20 @@ function doLogout() {
     clearInterval(ambientTimer);
     ambientTimer = null;
   }
-  const layer = document.getElementById("ambient-background");
+  const layer = document.getElementById("ambient-bg");
   if (layer) layer.innerHTML = "";
   const feed = document.getElementById("classifieds-feed");
   if (feed) feed.innerHTML = "";
   feedCycleIdx = 0;
-  showGazetteView();
+  showLandingView();
 }
 
 async function enterApp() {
-  document.getElementById("gazette-view")?.classList.add("hidden");
-  document.getElementById("ambient-background")?.classList.add("hidden");
-  document.getElementById("app-shell").classList.remove("hidden");
-  document.body.classList.remove("spa-landing");
+  document.getElementById("landing-view")?.classList.add("hidden");
+  document.getElementById("ambient-bg")?.classList.add("hidden");
+  document.getElementById("app-view").classList.remove("hidden");
+  document.body.classList.remove("landing-mode");
+  document.body.classList.add("app-mode");
   document.getElementById("user-chip").textContent = loggedUser.nome;
 
   const isAtor = loggedUser.type === "ator";
@@ -528,16 +529,17 @@ function formatGazetteLocation(actor) {
   return "LOCATION: unavailable";
 }
 
-function showGazetteView() {
-  document.getElementById("gazette-view")?.classList.remove("hidden");
-  document.getElementById("ambient-background")?.classList.remove("hidden");
-  document.getElementById("app-shell")?.classList.add("hidden");
-  document.body.classList.add("spa-landing");
+function showLandingView() {
+  document.getElementById("landing-view")?.classList.remove("hidden");
+  document.getElementById("ambient-bg")?.classList.remove("hidden");
+  document.getElementById("app-view")?.classList.add("hidden");
+  document.body.classList.remove("app-mode");
+  document.body.classList.add("landing-mode");
   if (history.replaceState) history.replaceState(null, "", "/");
 
   const feed = document.getElementById("classifieds-feed");
   if (!gazetteActors.length) {
-    initGazetteData();
+    initLandingData();
   } else if (feed && !feed.querySelector(".classified-item")) {
     appendFeedBatch(gazetteActors.length);
     setupFeedInfiniteScroll();
@@ -590,7 +592,7 @@ let feedScrollBound = false;
 let ambientTimer = null;
 
 function populateAmbientCards(count) {
-  const layer = document.getElementById("ambient-background");
+  const layer = document.getElementById("ambient-bg");
   if (!layer || !gazetteActors.length) return;
   const maxCards = 24;
   while (layer.children.length >= maxCards) {
@@ -641,7 +643,7 @@ function startAmbientStream() {
   ambientTimer = setInterval(() => populateAmbientCards(2), 4000);
 }
 
-async function initGazetteData() {
+async function initLandingData() {
   const feed = document.getElementById("classifieds-feed");
   if (!feed) return;
   feed.innerHTML = `<p class="classified-status">LOADING CLASSIFIEDS...</p>`;
@@ -673,6 +675,6 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.removeItem(LS_KEY);
     }
   }
-  showGazetteView();
+  showLandingView();
   populateLoginSelect();
 });

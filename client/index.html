@@ -4,14 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>The Aquarium Gazette</title>
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
 
-<div id="ambient-background" class="ambient-background" aria-hidden="true"></div>
+<div id="ambient-bg" class="ambient-bg" aria-hidden="true"></div>
 
-<div id="gazette-view" class="gazette-view">
-  <div class="spa-column">
+<section id="landing-view" class="landing-view">
+  <div class="landing-column">
 
     <header class="gazette-header">
       <h1 class="gazette-masthead">THE AQUARIUM GAZETTE</h1>
@@ -109,9 +109,9 @@
     </section>
 
   </div>
-</div>
+</section>
 
-<div class="mobile-shell hidden" id="app-shell">
+<section id="app-view" class="mobile-shell hidden">
 
   <header class="app-header">
     <div class="brand-mark">
@@ -206,7 +206,7 @@
     </button>
   </nav>
 
-</div>
+</section>
 
 <div class="match-overlay hidden" id="match-overlay">
   <div class="match-card">
@@ -217,6 +217,6 @@
   </div>
 </div>
 
-<script src="/main.js"></script>
+<script src="/static/main.js"></script>
 </body>
 </html>

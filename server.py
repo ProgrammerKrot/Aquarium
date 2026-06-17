@@ -10,6 +10,7 @@ from typing import Literal, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -420,14 +421,7 @@ def health(db: Session = Depends(get_db)):
 
 @app.get("/")
 async def serve_index():
-    return FileResponse(CLIENT_DIR / "index.html", media_type="text/html")
+    return FileResponse(CLIENT_DIR / "index.html", media_type="text/html; charset=utf-8")
 
 
-@app.get("/style.css")
-async def serve_css():
-    return FileResponse(CLIENT_DIR / "style.css", media_type="text/css")
-
-
-@app.get("/main.js")
-async def serve_js():
-    return FileResponse(CLIENT_DIR / "main.js", media_type="application/javascript")
+app.mount("/static", StaticFiles(directory=str(CLIENT_DIR)), name="static")
