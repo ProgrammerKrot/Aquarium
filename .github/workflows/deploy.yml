@@ -24,13 +24,11 @@ jobs:
           script: |
             set -e
 
-            # Ensure git is installed
             if ! command -v git &>/dev/null; then
               apt-get update -qq
               apt-get install -y -qq git
             fi
 
-            # Clone repo on first run, or pull latest changes
             REPO_URL="https://${GH_PAT}@github.com/ProgrammerKrot/Aquarium.git"
             if [ ! -d "/opt/aquarium/.git" ]; then
               git clone "$REPO_URL" /opt/aquarium
@@ -40,10 +38,8 @@ jobs:
             git fetch "https://${GH_PAT}@github.com/ProgrammerKrot/Aquarium.git" main
             git reset --hard FETCH_HEAD
 
-            # Rebuild and restart containers
             docker compose down --remove-orphans
             docker compose up --build -d
 
-            # Wait a moment and show running containers
             sleep 5
             docker compose ps

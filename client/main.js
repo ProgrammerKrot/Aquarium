@@ -196,17 +196,24 @@ function doLogout() {
   }
   const layer = document.getElementById("ambient-bg");
   if (layer) layer.innerHTML = "";
+  feedCycleIdx = 0;
+  feedScrollBound = false;
+  const feed = document.getElementById("classifieds-feed");
+  if (feed) feed.innerHTML = "";
   window.location.href = "/";
 }
 
 async function enterApp() {
   document.getElementById("landing-view")?.classList.add("hidden");
-  document.getElementById("ambient-bg")?.classList.add("hidden");
+  document.getElementById("ambient-bg")?.classList.remove("hidden");
   document.getElementById("app-view").classList.remove("hidden");
   document.body.classList.remove("landing-mode");
   document.body.classList.add("app-mode");
   if (history.replaceState) history.replaceState(null, "", "/aquarium");
   document.getElementById("user-chip").textContent = loggedUser.nome;
+
+  await ensureActorsLoaded();
+  startAmbientStream();
 
   const isAtor = loggedUser.type === "ator";
 
@@ -535,10 +542,16 @@ function showLandingView() {
   document.body.classList.add("landing-mode");
   if (history.replaceState) history.replaceState(null, "", "/");
 
+  const feed = document.getElementById("classifieds-feed");
   if (!gazetteActors.length) {
-    initLandingAmbient();
-  } else if (!ambientTimer) {
+    initLandingPage();
+  } else {
     startAmbientStream();
+    if (feed && !feed.querySelector(".classified-item")) {
+      feedCycleIdx = 0;
+      appendFeedBatch(gazetteActors.length);
+      setupFeedInfiniteScroll();
+    }
   }
 }
 
@@ -565,12 +578,68 @@ function buildAmbientCard(actor) {
     <p class="ambient-name">${escapeHtml(actor.nome)}</p>
     <p>${escapeHtml((actor.bio || "Available").slice(0, 48))}</p>
   `;
-  card.addEventListener("click", focusAuthForm);
+  if (document.body.classList.contains("landing-mode")) {
+    card.addEventListener("click", focusAuthForm);
+  }
   return card;
 }
 
+function buildFeedItem(actor) {
+  const item = document.createElement("article");
+  item.className = "classified-item";
+  item.innerHTML = `
+    <p class="classified-line classified-name">${escapeHtml(actor.nome)}</p>
+    <p class="classified-line">AGE: ${escapeHtml(actor.idade)} · NATIONALITY: ${escapeHtml(actor.nacionalidade)}</p>
+    <p class="classified-line">WHAT I CAN DO: ${escapeHtml(actor.bio || "No description provided.")}</p>
+    <p class="classified-line classified-loc">${formatGazetteLocation(actor)}</p>
+  `;
+  item.addEventListener("click", focusAuthForm);
+  return item;
+}
+
 let gazetteActors = [];
+let feedCycleIdx = 0;
+let feedLoading = false;
+let feedScrollBound = false;
 let ambientTimer = null;
+
+async function ensureActorsLoaded() {
+  if (gazetteActors.length) return;
+  gazetteActors = await apiGetAtores();
+}
+
+function appendFeedBatch(count) {
+  const feed = document.getElementById("classifieds-feed");
+  if (!feed || !gazetteActors.length) return;
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < count; i++) {
+    const actor = gazetteActors[feedCycleIdx % gazetteActors.length];
+    feedCycleIdx += 1;
+    frag.appendChild(buildFeedItem(actor));
+  }
+  feed.appendChild(frag);
+}
+
+function setupFeedInfiniteScroll() {
+  if (feedScrollBound) return;
+  feedScrollBound = true;
+  const sentinel = document.getElementById("classifieds-sentinel");
+  const loadMore = () => {
+    if (feedLoading || !gazetteActors.length) return;
+    feedLoading = true;
+    appendFeedBatch(gazetteActors.length);
+    requestAnimationFrame(() => { feedLoading = false; });
+  };
+  if (sentinel) {
+    new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) loadMore(); },
+      { root: null, rootMargin: "200px", threshold: 0 },
+    ).observe(sentinel);
+  }
+  window.addEventListener("scroll", () => {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) loadMore();
+  }, { passive: true });
+}
 
 function populateAmbientCards(count) {
   const layer = document.getElementById("ambient-bg");
@@ -591,13 +660,25 @@ function startAmbientStream() {
   ambientTimer = setInterval(() => populateAmbientCards(3), 3500);
 }
 
-async function initLandingAmbient() {
+async function initLandingPage() {
+  const feed = document.getElementById("classifieds-feed");
+  if (!feed) return;
+  feed.innerHTML = `<p class="classified-status">LOADING CLASSIFIEDS...</p>`;
+
   try {
-    gazetteActors = await apiGetAtores();
-    if (!gazetteActors.length) return;
+    await ensureActorsLoaded();
+    feed.innerHTML = "";
+    if (!gazetteActors.length) {
+      feed.innerHTML = `<p class="classified-status">NO COMPANIONS LISTED TODAY.</p>`;
+      return;
+    }
+    feedCycleIdx = 0;
+    appendFeedBatch(gazetteActors.length);
+    setupFeedInfiniteScroll();
     startAmbientStream();
   } catch (err) {
-    console.error("[Ambient]", err);
+    console.error("[Landing]", err);
+    feed.innerHTML = `<p class="classified-status">COULD NOT LOAD CLASSIFIEDS.</p>`;
   }
 }
 

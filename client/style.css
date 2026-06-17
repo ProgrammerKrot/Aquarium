@@ -927,11 +927,10 @@ body.landing-mode {
   position: relative;
   z-index: 2;
   display: flex;
-  align-items: center;
   justify-content: center;
   width: 100%;
   min-height: 100vh;
-  padding: 24px 16px;
+  padding: 24px 16px 48px;
 }
 
 .landing-column {
@@ -939,6 +938,16 @@ body.landing-mode {
   padding: 20px 16px 24px;
   background: #FFFFFF;
   border: 2px solid #1A1A1A;
+}
+
+body.app-mode #app-view {
+  position: relative;
+  z-index: 2;
+}
+
+body.app-mode .ambient-card {
+  pointer-events: none;
+  cursor: default;
 }
 
 .gazette-header {
@@ -972,7 +981,7 @@ body.landing-mode {
 }
 
 .auth-view {
-  margin-bottom: 0;
+  margin-bottom: 18px;
 }
 
 .landing-column .auth-card {
@@ -991,6 +1000,66 @@ body.landing-mode {
 @keyframes authFlash {
   0%, 100% { outline: 2px solid transparent; outline-offset: 0; }
   50% { outline: 3px solid #1A1A1A; outline-offset: 2px; }
+}
+
+.classifieds-section {
+  border-top: 2px solid #1A1A1A;
+  padding-top: 14px;
+}
+
+.classifieds-heading {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.classifieds-feed {
+  display: flex;
+  flex-direction: column;
+}
+
+.classified-item {
+  border-bottom: 1px dashed #1A1A1A;
+  padding: 10px 2px;
+  cursor: pointer;
+  background: #FFFFFF;
+}
+
+.classified-item:hover {
+  background: #F7F7F7;
+}
+
+.classified-line {
+  font-size: 10px;
+  line-height: 1.45;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+.classified-name,
+.classified-loc {
+  font-weight: 700;
+}
+
+.classified-loc {
+  margin-bottom: 0;
+}
+
+.classified-status {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 20px 8px;
+  border: 1px dashed #1A1A1A;
+}
+
+.classifieds-sentinel {
+  height: 1px;
 }
 
 @media (min-width: 500px) {

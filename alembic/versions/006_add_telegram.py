@@ -1,9 +1,3 @@
-"""Add telegram username to clientes and atores; seed demo handles
-
-Revision ID: 006
-Revises: 005
-Create Date: 2026-06-16
-"""
 from typing import Sequence, Union
 
 import sqlalchemy as sa
@@ -30,7 +24,6 @@ _ACTOR_TG = [
     ("Yuki Tanaka",    "yuki_cultural_bridge"),
 ]
 
-
 def upgrade() -> None:
     op.add_column("clientes", sa.Column("telegram", sa.String(100), nullable=True))
     op.add_column("atores",   sa.Column("telegram", sa.String(100), nullable=True))
@@ -40,7 +33,6 @@ def upgrade() -> None:
         bind.execute(sa.text("UPDATE clientes SET telegram=:tg WHERE nome=:nome"), {"tg": tg, "nome": nome})
     for nome, tg in _ACTOR_TG:
         bind.execute(sa.text("UPDATE atores SET telegram=:tg WHERE nome=:nome"), {"tg": tg, "nome": nome})
-
 
 def downgrade() -> None:
     op.drop_column("atores",   "telegram")

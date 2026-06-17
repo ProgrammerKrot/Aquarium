@@ -14,7 +14,6 @@ from sqlalchemy.orm import relationship
 
 from .base import Base
 
-
 class Cliente(Base):
     __tablename__ = "clientes"
 
@@ -29,7 +28,6 @@ class Cliente(Base):
 
     pedidos = relationship("Pedido", back_populates="cliente")
     swipes  = relationship("Swipe",  back_populates="cliente")
-
 
 class Ator(Base):
     __tablename__ = "atores"
@@ -48,7 +46,6 @@ class Ator(Base):
     servico_atores = relationship("ServicoAtor", back_populates="ator")
     swipes         = relationship("Swipe",       back_populates="ator")
 
-
 class TipoEvento(Base):
     __tablename__ = "tipos_evento"
 
@@ -56,7 +53,6 @@ class TipoEvento(Base):
     descricao = Column(String(255), nullable=False)
 
     servicos = relationship("Servico", back_populates="tipo_evento")
-
 
 class Pedido(Base):
     __tablename__ = "pedidos"
@@ -69,7 +65,6 @@ class Pedido(Base):
     cliente    = relationship("Cliente",    back_populates="pedidos")
     servicos   = relationship("Servico",    back_populates="pedido")
     pagamentos = relationship("Pagamento",  back_populates="pedido")
-
 
 class Servico(Base):
     __tablename__ = "servicos"
@@ -85,7 +80,6 @@ class Servico(Base):
     servico_atores = relationship("ServicoAtor", back_populates="servico")
     avaliacoes     = relationship("Avaliacao",   back_populates="servico")
 
-
 class Papel(Base):
     __tablename__ = "papeis"
 
@@ -93,7 +87,6 @@ class Papel(Base):
     descricao = Column(String(255), nullable=False)
 
     servico_atores = relationship("ServicoAtor", back_populates="papel")
-
 
 class ServicoAtor(Base):
     __tablename__ = "servico_atores"
@@ -106,7 +99,6 @@ class ServicoAtor(Base):
     ator    = relationship("Ator",    back_populates="servico_atores")
     papel   = relationship("Papel",   back_populates="servico_atores")
 
-
 class Pagamento(Base):
     __tablename__ = "pagamentos"
 
@@ -117,7 +109,6 @@ class Pagamento(Base):
     data_pagamento = Column(Date,           nullable=False)
 
     pedido = relationship("Pedido", back_populates="pagamentos")
-
 
 class Avaliacao(Base):
     __tablename__ = "avaliacoes"
@@ -132,9 +123,7 @@ class Avaliacao(Base):
 
     servico = relationship("Servico", back_populates="avaliacoes")
 
-
 class Swipe(Base):
-    """Swipe decisions — not in the original ERD, added for the match feature."""
     __tablename__ = "swipes"
     __table_args__ = (
         UniqueConstraint("id_cliente", "id_ator", name="uq_swipe_pair"),
@@ -143,7 +132,7 @@ class Swipe(Base):
     id_swipe   = Column(Integer,    primary_key=True, autoincrement=True)
     id_cliente = Column(Integer,    ForeignKey("clientes.id_cliente"), nullable=False)
     id_ator    = Column(Integer,    ForeignKey("atores.id_ator"),      nullable=False)
-    direcao    = Column(String(10), nullable=False)  # 'like' | 'dislike'
+    direcao    = Column(String(10), nullable=False)
 
     cliente = relationship("Cliente", back_populates="swipes")
     ator    = relationship("Ator",    back_populates="swipes")

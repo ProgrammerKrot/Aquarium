@@ -1,9 +1,3 @@
-"""Initial schema — all ERD tables
-
-Revision ID: 001
-Revises:
-Create Date: 2026-06-16
-"""
 from typing import Sequence, Union
 
 import sqlalchemy as sa
@@ -14,9 +8,7 @@ down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
-
 def upgrade() -> None:
-    # ── clientes ──────────────────────────────────
     op.create_table(
         "clientes",
         sa.Column("id_cliente", sa.Integer(), primary_key=True, autoincrement=True),
@@ -25,7 +17,6 @@ def upgrade() -> None:
         sa.Column("telefone",   sa.String(50),  nullable=False),
     )
 
-    # ── atores ────────────────────────────────────
     op.create_table(
         "atores",
         sa.Column("id_ator",       sa.Integer(),    primary_key=True, autoincrement=True),
@@ -35,21 +26,18 @@ def upgrade() -> None:
         sa.Column("avatar_url",    sa.String(500),  nullable=True),
     )
 
-    # ── tipos_evento ──────────────────────────────
     op.create_table(
         "tipos_evento",
         sa.Column("id_tipo",   sa.Integer(),    primary_key=True, autoincrement=True),
         sa.Column("descricao", sa.String(255),  nullable=False),
     )
 
-    # ── papeis ────────────────────────────────────
     op.create_table(
         "papeis",
         sa.Column("id_papel",  sa.Integer(),    primary_key=True, autoincrement=True),
         sa.Column("descricao", sa.String(255),  nullable=False),
     )
 
-    # ── pedidos ───────────────────────────────────
     op.create_table(
         "pedidos",
         sa.Column("id_pedido",   sa.Integer(),   primary_key=True, autoincrement=True),
@@ -59,7 +47,6 @@ def upgrade() -> None:
     )
     op.create_index("ix_pedidos_id_cliente", "pedidos", ["id_cliente"])
 
-    # ── servicos ──────────────────────────────────
     op.create_table(
         "servicos",
         sa.Column("id_servico",   sa.Integer(),        primary_key=True, autoincrement=True),
@@ -70,7 +57,6 @@ def upgrade() -> None:
     )
     op.create_index("ix_servicos_id_pedido", "servicos", ["id_pedido"])
 
-    # ── servico_atores ────────────────────────────
     op.create_table(
         "servico_atores",
         sa.Column("id_servico", sa.Integer(), sa.ForeignKey("servicos.id_servico"), primary_key=True),
@@ -78,7 +64,6 @@ def upgrade() -> None:
         sa.Column("id_papel",   sa.Integer(), sa.ForeignKey("papeis.id_papel"),     nullable=False),
     )
 
-    # ── pagamentos ────────────────────────────────
     op.create_table(
         "pagamentos",
         sa.Column("id_pagamento",   sa.Integer(),      primary_key=True, autoincrement=True),
@@ -89,7 +74,6 @@ def upgrade() -> None:
     )
     op.create_index("ix_pagamentos_id_pedido", "pagamentos", ["id_pedido"])
 
-    # ── avaliacoes ────────────────────────────────
     op.create_table(
         "avaliacoes",
         sa.Column("id_avaliacao",  sa.Integer(), primary_key=True, autoincrement=True),
@@ -99,7 +83,6 @@ def upgrade() -> None:
         sa.CheckConstraint("classificacao >= 1 AND classificacao <= 5", name="ck_classificacao"),
     )
 
-    # ── swipes (app-specific, not in ERD) ─────────
     op.create_table(
         "swipes",
         sa.Column("id_swipe",   sa.Integer(),   primary_key=True, autoincrement=True),
@@ -109,7 +92,6 @@ def upgrade() -> None:
         sa.UniqueConstraint("id_cliente", "id_ator", name="uq_swipe_pair"),
     )
     op.create_index("ix_swipes_id_cliente", "swipes", ["id_cliente"])
-
 
 def downgrade() -> None:
     op.drop_table("swipes")
