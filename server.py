@@ -5,10 +5,11 @@ import math
 import os
 import random
 from datetime import date
+from pathlib import Path
 from typing import Literal, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -16,6 +17,8 @@ from db.base import get_db
 import db.models as M
 
 app = FastAPI(title="CompanionMatch API", version="0.4.0")
+
+CLIENT_DIR = Path(__file__).parent / "client"
 
 def haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     R = 6371.0
@@ -414,4 +417,17 @@ def health(db: Session = Depends(get_db)):
         "matches":   db.query(M.Pedido).filter_by(status="Matched").count(),
     }
 
-app.mount("/", StaticFiles(directory="client", html=True), name="static")
+
+@app.get("/")
+async def serve_index():
+    return FileResponse(CLIENT_DIR / "index.html", media_type="text/html")
+
+
+@app.get("/style.css")
+async def serve_css():
+    return FileResponse(CLIENT_DIR / "style.css", media_type="text/css")
+
+
+@app.get("/main.js")
+async def serve_js():
+    return FileResponse(CLIENT_DIR / "main.js", media_type="application/javascript")

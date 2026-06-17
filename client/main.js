@@ -190,14 +190,23 @@ function doLogout() {
   currentIdx   = 0;
   _allClientes = [];
   _allAtores   = [];
+  if (ambientTimer) {
+    clearInterval(ambientTimer);
+    ambientTimer = null;
+  }
+  const layer = document.getElementById("ambient-background");
+  if (layer) layer.innerHTML = "";
+  const feed = document.getElementById("classifieds-feed");
+  if (feed) feed.innerHTML = "";
+  feedCycleIdx = 0;
   showGazetteView();
 }
 
 async function enterApp() {
   document.getElementById("gazette-view")?.classList.add("hidden");
-  document.getElementById("auth-screen").classList.add("hidden");
+  document.getElementById("ambient-background")?.classList.add("hidden");
   document.getElementById("app-shell").classList.remove("hidden");
-  document.body.classList.remove("gazette-page");
+  document.body.classList.remove("spa-landing");
   document.getElementById("user-chip").textContent = loggedUser.nome;
 
   const isAtor = loggedUser.type === "ator";
@@ -214,8 +223,8 @@ async function enterApp() {
   const banner = document.getElementById("role-info-text");
   if (banner) {
     banner.innerHTML = isAtor
-      ? "🪸 You are a <strong>Coral Opportunist</strong> — accept fish jobs from Fish below."
-      : "🐠 You are a <strong>Fish</strong> — swipe to find a Coral Opportunist for your fish job.";
+      ? "You are a <strong>Coral Opportunist</strong> — accept fish jobs from Fish below."
+      : "You are a <strong>Fish</strong> — swipe to find a Coral Opportunist for your fish job.";
   }
 
   const defaultMode = isAtor ? "provider" : "customer";
@@ -312,7 +321,7 @@ function renderCurrentCard() {
   
   const distEl = document.getElementById("actor-distance");
   if (actor.distancia_km != null) {
-    distEl.textContent = `📍 ${actor.distancia_km} km away`;
+    distEl.textContent = `${actor.distancia_km} km away`;
     distEl.classList.remove("hidden");
   } else {
     distEl.classList.add("hidden");
@@ -475,11 +484,11 @@ function fillBrowserLocation() {
     (pos) => {
       document.getElementById("reg-lat").value = pos.coords.latitude.toFixed(6);
       document.getElementById("reg-lon").value = pos.coords.longitude.toFixed(6);
-      if (btn) { btn.textContent = "📍 Got it!"; btn.disabled = false; }
-      showToast("Location filled ✓", 1400);
+      if (btn) { btn.textContent = "Got it"; btn.disabled = false; }
+      showToast("Location filled", 1400);
     },
     (err) => {
-      if (btn) { btn.textContent = "📍 My location"; btn.disabled = false; }
+      if (btn) { btn.textContent = "Use my location"; btn.disabled = false; }
       showToast("Could not get location: " + err.message, 2500);
     },
     { enableHighAccuracy: true, timeout: 8000 },
@@ -521,126 +530,135 @@ function formatGazetteLocation(actor) {
 
 function showGazetteView() {
   document.getElementById("gazette-view")?.classList.remove("hidden");
-  document.getElementById("auth-screen")?.classList.add("hidden");
+  document.getElementById("ambient-background")?.classList.remove("hidden");
   document.getElementById("app-shell")?.classList.add("hidden");
-  document.body.classList.add("gazette-page");
+  document.body.classList.add("spa-landing");
   if (history.replaceState) history.replaceState(null, "", "/");
+
+  const feed = document.getElementById("classifieds-feed");
+  if (!gazetteActors.length) {
+    initGazetteData();
+  } else if (feed && !feed.querySelector(".classified-item")) {
+    appendFeedBatch(gazetteActors.length);
+    setupFeedInfiniteScroll();
+    startAmbientStream();
+  }
 }
 
-function showAuthView() {
-  document.getElementById("gazette-view")?.classList.remove("hidden");
-  document.getElementById("auth-screen")?.classList.remove("hidden");
-  document.getElementById("app-shell")?.classList.add("hidden");
-  document.body.classList.add("gazette-page");
-  populateLoginSelect();
-  if (history.replaceState) history.replaceState(null, "", "/");
+function focusAuthForm() {
+  const authView = document.getElementById("auth-view");
+  const authCard = document.getElementById("auth-card");
+  if (authView) authView.scrollIntoView({ behavior: "smooth", block: "start" });
+  if (authCard) {
+    authCard.classList.remove("auth-flash");
+    void authCard.offsetWidth;
+    authCard.classList.add("auth-flash");
+  }
 }
 
-function goToLogin() {
-  showAuthView();
-}
-
-function buildFloatCard(actor, topPct, leftPct) {
-  const card = document.createElement("article");
-  card.className = "gazette-float-card";
-  card.style.top = `${topPct}%`;
-  card.style.left = `${leftPct}%`;
-  card.style.animationDelay = `${-(Math.random() * 8).toFixed(1)}s`;
-  card.style.animationDuration = `${14 + Math.random() * 10}s`;
+function buildAmbientCard(actor) {
+  const card = document.createElement("div");
+  card.className = "ambient-card";
+  card.style.left = `${4 + Math.random() * 82}%`;
+  card.style.animationDuration = `${18 + Math.random() * 22}s`;
+  card.style.animationDelay = `${-(Math.random() * 18)}s`;
   card.innerHTML = `
-    <p class="gazette-float-name">${escapeHtml(actor.nome)}</p>
-    <p class="gazette-float-meta">AGE: ${escapeHtml(actor.idade)} · ${escapeHtml(actor.nacionalidade)}</p>
-    <p class="gazette-float-bio">WHAT I CAN DO: ${escapeHtml(actor.bio || "No description provided.")}</p>
-    <p class="gazette-float-loc">${formatGazetteLocation(actor)}</p>
+    <p>${escapeHtml(actor.nome)}</p>
+    <p>AGE ${escapeHtml(actor.idade)} · ${escapeHtml(actor.nacionalidade)}</p>
+    <p>${escapeHtml((actor.bio || "Available").slice(0, 60))}</p>
   `;
-  card.addEventListener("click", showAuthView);
   return card;
 }
 
-function randomFloatPosition(scrollOffsetVh) {
-  let left;
-  let top;
-  let tries = 0;
-  do {
-    left = 2 + Math.random() * 86;
-    top = scrollOffsetVh + Math.random() * 90;
-    tries += 1;
-  } while (
-    tries < 12 &&
-    left > 24 && left < 76 &&
-    top % 100 > 28 && top % 100 < 72
-  );
-  return { left, top };
+function buildFeedItem(actor) {
+  const item = document.createElement("article");
+  item.className = "classified-item";
+  item.innerHTML = `
+    <p class="classified-line classified-name">${escapeHtml(actor.nome)}</p>
+    <p class="classified-line">AGE: ${escapeHtml(actor.idade)} · NATIONALITY: ${escapeHtml(actor.nacionalidade)}</p>
+    <p class="classified-line">WHAT I CAN DO: ${escapeHtml(actor.bio || "No description provided.")}</p>
+    <p class="classified-line classified-loc">${formatGazetteLocation(actor)}</p>
+  `;
+  item.addEventListener("click", focusAuthForm);
+  return item;
 }
 
 let gazetteActors = [];
-let gazetteCycleIdx = 0;
-let gazetteLoadingMore = false;
-let gazetteStageHeightVh = 120;
-let gazetteScrollBound = false;
+let feedCycleIdx = 0;
+let feedLoading = false;
+let feedScrollBound = false;
+let ambientTimer = null;
 
-function appendFloatBatch(count) {
-  const stage = document.getElementById("gazette-float-stage");
-  if (!stage || !gazetteActors.length) return;
-
-  const scrollBlock = Math.floor(gazetteCycleIdx / gazetteActors.length);
-  const frag = document.createDocumentFragment();
-
-  for (let i = 0; i < count; i++) {
-    const actor = gazetteActors[gazetteCycleIdx % gazetteActors.length];
-    gazetteCycleIdx += 1;
-    const block = Math.floor((gazetteCycleIdx - 1) / gazetteActors.length);
-    const pos = randomFloatPosition(block * 100);
-    frag.appendChild(buildFloatCard(actor, pos.top, pos.left));
+function populateAmbientCards(count) {
+  const layer = document.getElementById("ambient-background");
+  if (!layer || !gazetteActors.length) return;
+  const maxCards = 24;
+  while (layer.children.length >= maxCards) {
+    layer.removeChild(layer.firstElementChild);
   }
-
-  stage.appendChild(frag);
-  gazetteStageHeightVh = Math.max(gazetteStageHeightVh, (scrollBlock + 2) * 100);
-  stage.style.minHeight = `${gazetteStageHeightVh}vh`;
-  const view = document.getElementById("gazette-view");
-  if (view) view.style.minHeight = `${gazetteStageHeightVh}vh`;
+  for (let i = 0; i < count; i++) {
+    const actor = gazetteActors[Math.floor(Math.random() * gazetteActors.length)];
+    layer.appendChild(buildAmbientCard(actor));
+  }
 }
 
-function setupGazetteInfiniteScroll() {
-  if (gazetteScrollBound) return;
-  gazetteScrollBound = true;
-
-  const sentinel = document.getElementById("gazette-scroll-sentinel");
-  const loadMore = () => {
-    if (gazetteLoadingMore || !gazetteActors.length) return;
-    gazetteLoadingMore = true;
-    appendFloatBatch(Math.max(gazetteActors.length, 4));
-    requestAnimationFrame(() => { gazetteLoadingMore = false; });
-  };
-
-  if (sentinel) {
-    const observer = new IntersectionObserver(
-      (entries) => { if (entries[0].isIntersecting) loadMore(); },
-      { root: null, rootMargin: "300px", threshold: 0 },
-    );
-    observer.observe(sentinel);
+function appendFeedBatch(count) {
+  const feed = document.getElementById("classifieds-feed");
+  if (!feed || !gazetteActors.length) return;
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < count; i++) {
+    const actor = gazetteActors[feedCycleIdx % gazetteActors.length];
+    feedCycleIdx += 1;
+    frag.appendChild(buildFeedItem(actor));
   }
+  feed.appendChild(frag);
+}
 
+function setupFeedInfiniteScroll() {
+  if (feedScrollBound) return;
+  feedScrollBound = true;
+  const sentinel = document.getElementById("classifieds-sentinel");
+  const loadMore = () => {
+    if (feedLoading || !gazetteActors.length) return;
+    feedLoading = true;
+    appendFeedBatch(gazetteActors.length);
+    requestAnimationFrame(() => { feedLoading = false; });
+  };
+  if (sentinel) {
+    new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) loadMore(); },
+      { root: null, rootMargin: "200px", threshold: 0 },
+    ).observe(sentinel);
+  }
   window.addEventListener("scroll", () => {
-    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 120) {
-      loadMore();
-    }
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) loadMore();
   }, { passive: true });
 }
 
-async function initGazetteLanding() {
-  const stage = document.getElementById("gazette-float-stage");
-  if (!stage || gazetteActors.length) return;
+function startAmbientStream() {
+  if (ambientTimer) return;
+  populateAmbientCards(10);
+  ambientTimer = setInterval(() => populateAmbientCards(2), 4000);
+}
+
+async function initGazetteData() {
+  const feed = document.getElementById("classifieds-feed");
+  if (!feed) return;
+  feed.innerHTML = `<p class="classified-status">LOADING CLASSIFIEDS...</p>`;
 
   try {
     gazetteActors = await apiGetAtores();
-    if (!gazetteActors.length) return;
-
-    appendFloatBatch(Math.min(gazetteActors.length, 8));
-    appendFloatBatch(Math.min(gazetteActors.length, 6));
-    setupGazetteInfiniteScroll();
+    feed.innerHTML = "";
+    if (!gazetteActors.length) {
+      feed.innerHTML = `<p class="classified-status">NO COMPANIONS LISTED TODAY.</p>`;
+      return;
+    }
+    appendFeedBatch(gazetteActors.length);
+    setupFeedInfiniteScroll();
+    startAmbientStream();
   } catch (err) {
     console.error("[Gazette]", err);
+    feed.innerHTML = `<p class="classified-status">COULD NOT LOAD CLASSIFIEDS.</p>`;
   }
 }
 
@@ -655,7 +673,6 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.removeItem(LS_KEY);
     }
   }
-
   showGazetteView();
-  initGazetteLanding();
+  populateLoginSelect();
 });
