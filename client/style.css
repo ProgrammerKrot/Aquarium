@@ -851,7 +851,7 @@ html, body {
 .swipe-card.exit-right { animation: swipe-right 0.28s ease-in forwards; }
 
 @media (min-width: 500px) {
-  body {
+  body:not(.gazette-page) {
     display: flex;
     align-items: flex-start;
     justify-content: center;
@@ -874,154 +874,179 @@ html, body {
 
 .gazette-page {
   min-height: 100svh;
-  background: var(--bg);
+  background: #EBEBEB;
   color: var(--ink);
 }
 
-.gazette-header {
-  border-bottom: var(--border-action);
-  padding: 20px 16px 16px;
-  max-width: 640px;
-  margin: 0 auto;
+.gazette-view {
+  position: relative;
+  min-height: 100svh;
+}
+
+.gazette-float-stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 120vh;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.gazette-float-card {
+  position: absolute;
+  width: min(220px, 42vw);
+  padding: 8px 10px;
+  border: 1px dashed #1A1A1A;
+  background: rgba(255, 255, 255, 0.42);
+  color: var(--ink);
+  pointer-events: auto;
+  cursor: pointer;
+  animation: gazette-drift linear infinite;
+  transition: background 0.15s;
+}
+
+.gazette-float-card:hover {
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.gazette-float-name {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+.gazette-float-meta,
+.gazette-float-bio,
+.gazette-float-loc {
+  font-size: 9px;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.gazette-float-loc {
+  margin-bottom: 0;
+  font-weight: 700;
+}
+
+@keyframes gazette-drift {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(10px, -14px); }
+  50%  { transform: translate(-8px, 8px); }
+  75%  { transform: translate(6px, 12px); }
+  100% { transform: translate(0, 0); }
+}
+
+.gazette-scroll-sentinel {
+  position: relative;
+  z-index: 0;
+  height: 1px;
+  width: 100%;
+}
+
+.gazette-hero {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  pointer-events: none;
+}
+
+.gazette-hero-inner {
+  pointer-events: auto;
+  width: min(92vw, 400px);
+  background: rgba(255, 255, 255, 0.96);
+  border: 2px solid #1A1A1A;
+  padding: 24px 20px 20px;
+  text-align: center;
 }
 
 .gazette-masthead {
   font-family: Arial, Helvetica, sans-serif;
-  font-size: clamp(22px, 6vw, 32px);
+  font-size: clamp(20px, 5.5vw, 28px);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-align: center;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   line-height: 1.15;
-  border-bottom: var(--border-action);
+  border-bottom: 2px solid #1A1A1A;
   padding-bottom: 12px;
   margin-bottom: 10px;
 }
 
 .gazette-meta-bar {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 6px 12px;
-  font-size: var(--fs-xs);
+  flex-direction: column;
+  gap: 4px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  border-top: var(--border-thin);
-  border-bottom: var(--border-thin);
+  border-top: 1px solid #1A1A1A;
+  border-bottom: 1px solid #1A1A1A;
   padding: 8px 0;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
+}
+
+.gazette-section-title {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
 }
 
 .gazette-access-btn {
   display: block;
   width: 100%;
   padding: 12px 10px;
-  background: var(--ink);
-  color: var(--surface);
-  border: var(--border-action);
-  border-radius: 2px;
-  font-family: inherit;
-  font-size: var(--fs-sm);
+  background: #1A1A1A;
+  color: #FFFFFF;
+  border: 2px solid #1A1A1A;
+  border-radius: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: var(--fs-xs);
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-align: center;
-  text-decoration: none;
   text-transform: uppercase;
   cursor: pointer;
 }
 
 .gazette-access-btn:hover {
-  background: var(--surface);
-  color: var(--ink);
+  background: #FFFFFF;
+  color: #1A1A1A;
 }
 
-.gazette-main {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 16px 16px 48px;
-}
-
-.gazette-section-title {
-  font-size: var(--fs-md);
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  text-align: center;
-  border-bottom: var(--border-thin);
-  padding-bottom: 10px;
-  margin-bottom: 14px;
-}
-
-.classifieds-feed {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.classified-ad {
-  border: 1px dashed #1A1A1A;
-  padding: 10px 12px;
-  cursor: pointer;
-  background: var(--surface);
-  transition: background 0.12s;
-}
-
-.classified-ad:hover,
-.classified-ad:focus {
-  outline: none;
-  background: var(--surface-alt);
-}
-
-.classified-ad-name {
-  font-size: var(--fs-sm);
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  margin-bottom: 4px;
-}
-
-.classified-ad-meta,
-.classified-ad-bio,
-.classified-ad-loc {
-  font-size: var(--fs-xs);
-  line-height: 1.45;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  margin-bottom: 3px;
-}
-
-.classified-ad-loc {
-  margin-bottom: 0;
-  font-weight: 700;
-}
-
-.classified-status {
-  font-size: var(--fs-xs);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  text-align: center;
-  padding: 24px 8px;
-  border: 1px dashed #1A1A1A;
-}
-
-.classifieds-sentinel {
-  height: 1px;
-  margin-top: 8px;
+body.gazette-page .auth-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(235, 235, 235, 0.92);
 }
 
 .auth-back-link {
   display: block;
+  width: 100%;
   margin-top: 6px;
+  padding-top: 12px;
+  border: none;
+  border-top: var(--border-thin);
+  background: transparent;
+  font-family: inherit;
   font-size: var(--fs-xs);
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
   text-align: center;
   color: var(--ink-muted);
-  text-decoration: none;
-  border-top: var(--border-thin);
-  padding-top: 12px;
+  cursor: pointer;
 }
 
 .auth-back-link:hover {
@@ -1031,24 +1056,11 @@ html, body {
 @media (min-width: 500px) {
   body.gazette-page {
     display: block;
-    padding: 24px 16px 40px;
+    padding: 0;
     background: #EBEBEB;
   }
 
-  .gazette-header,
-  .gazette-main {
-    background: var(--surface);
-    border-left: var(--border-action);
-    border-right: var(--border-action);
-  }
-
-  .gazette-header {
-    border-top: var(--border-action);
-    padding: 24px 20px 18px;
-  }
-
-  .gazette-main {
-    border-bottom: var(--border-action);
-    padding: 18px 20px 40px;
+  .gazette-float-card {
+    width: 240px;
   }
 }

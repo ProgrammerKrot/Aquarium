@@ -15,7 +15,11 @@ let customerView = "swipe";
 
 async function apiFetch(path, opts = {}) {
   const r = await fetch(API_BASE + path, opts);
+  const ct = r.headers.get("content-type") || "";
   if (!r.ok) throw new Error(`${opts.method || "GET"} ${path} → ${r.status}`);
+  if (!ct.includes("application/json")) {
+    throw new Error(`Expected JSON from ${path}`);
+  }
   return r.json();
 }
 
@@ -186,12 +190,14 @@ function doLogout() {
   currentIdx   = 0;
   _allClientes = [];
   _allAtores   = [];
-  window.location.href = "index.html";
+  showGazetteView();
 }
 
 async function enterApp() {
+  document.getElementById("gazette-view")?.classList.add("hidden");
   document.getElementById("auth-screen").classList.add("hidden");
   document.getElementById("app-shell").classList.remove("hidden");
+  document.body.classList.remove("gazette-page");
   document.getElementById("user-chip").textContent = loggedUser.nome;
 
   const isAtor = loggedUser.type === "ator";
@@ -513,93 +519,132 @@ function formatGazetteLocation(actor) {
   return "LOCATION: unavailable";
 }
 
-function goToLogin() {
-  window.location.href = "login.html";
+function showGazetteView() {
+  document.getElementById("gazette-view")?.classList.remove("hidden");
+  document.getElementById("auth-screen")?.classList.add("hidden");
+  document.getElementById("app-shell")?.classList.add("hidden");
+  document.body.classList.add("gazette-page");
+  if (history.replaceState) history.replaceState(null, "", "/");
 }
 
-function buildClassifiedAd(actor) {
-  const article = document.createElement("article");
-  article.className = "classified-ad";
-  article.tabIndex = 0;
-  article.setAttribute("role", "button");
-  article.innerHTML = `
-    <p class="classified-ad-name">${escapeHtml(actor.nome)}</p>
-    <p class="classified-ad-meta">AGE: ${escapeHtml(actor.idade)} · NATIONALITY: ${escapeHtml(actor.nacionalidade)}</p>
-    <p class="classified-ad-bio">WHAT I CAN DO: ${escapeHtml(actor.bio || "No description provided.")}</p>
-    <p class="classified-ad-loc">${formatGazetteLocation(actor)}</p>
+function showAuthView() {
+  document.getElementById("gazette-view")?.classList.remove("hidden");
+  document.getElementById("auth-screen")?.classList.remove("hidden");
+  document.getElementById("app-shell")?.classList.add("hidden");
+  document.body.classList.add("gazette-page");
+  populateLoginSelect();
+  if (history.replaceState) history.replaceState(null, "", "/");
+}
+
+function goToLogin() {
+  showAuthView();
+}
+
+function buildFloatCard(actor, topPct, leftPct) {
+  const card = document.createElement("article");
+  card.className = "gazette-float-card";
+  card.style.top = `${topPct}%`;
+  card.style.left = `${leftPct}%`;
+  card.style.animationDelay = `${-(Math.random() * 8).toFixed(1)}s`;
+  card.style.animationDuration = `${14 + Math.random() * 10}s`;
+  card.innerHTML = `
+    <p class="gazette-float-name">${escapeHtml(actor.nome)}</p>
+    <p class="gazette-float-meta">AGE: ${escapeHtml(actor.idade)} · ${escapeHtml(actor.nacionalidade)}</p>
+    <p class="gazette-float-bio">WHAT I CAN DO: ${escapeHtml(actor.bio || "No description provided.")}</p>
+    <p class="gazette-float-loc">${formatGazetteLocation(actor)}</p>
   `;
-  article.addEventListener("click", goToLogin);
-  article.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      goToLogin();
-    }
-  });
-  return article;
+  card.addEventListener("click", showAuthView);
+  return card;
+}
+
+function randomFloatPosition(scrollOffsetVh) {
+  let left;
+  let top;
+  let tries = 0;
+  do {
+    left = 2 + Math.random() * 86;
+    top = scrollOffsetVh + Math.random() * 90;
+    tries += 1;
+  } while (
+    tries < 12 &&
+    left > 24 && left < 76 &&
+    top % 100 > 28 && top % 100 < 72
+  );
+  return { left, top };
 }
 
 let gazetteActors = [];
 let gazetteCycleIdx = 0;
 let gazetteLoadingMore = false;
+let gazetteStageHeightVh = 120;
+let gazetteScrollBound = false;
 
-function appendGazetteBatch(count) {
-  const feed = document.getElementById("classifieds-feed");
-  if (!feed || !gazetteActors.length) return;
+function appendFloatBatch(count) {
+  const stage = document.getElementById("gazette-float-stage");
+  if (!stage || !gazetteActors.length) return;
 
+  const scrollBlock = Math.floor(gazetteCycleIdx / gazetteActors.length);
   const frag = document.createDocumentFragment();
+
   for (let i = 0; i < count; i++) {
     const actor = gazetteActors[gazetteCycleIdx % gazetteActors.length];
     gazetteCycleIdx += 1;
-    frag.appendChild(buildClassifiedAd(actor));
+    const block = Math.floor((gazetteCycleIdx - 1) / gazetteActors.length);
+    const pos = randomFloatPosition(block * 100);
+    frag.appendChild(buildFloatCard(actor, pos.top, pos.left));
   }
-  feed.appendChild(frag);
+
+  stage.appendChild(frag);
+  gazetteStageHeightVh = Math.max(gazetteStageHeightVh, (scrollBlock + 2) * 100);
+  stage.style.minHeight = `${gazetteStageHeightVh}vh`;
+  const view = document.getElementById("gazette-view");
+  if (view) view.style.minHeight = `${gazetteStageHeightVh}vh`;
 }
 
 function setupGazetteInfiniteScroll() {
-  const sentinel = document.getElementById("classifieds-sentinel");
-  if (!sentinel) return;
+  if (gazetteScrollBound) return;
+  gazetteScrollBound = true;
 
+  const sentinel = document.getElementById("gazette-scroll-sentinel");
   const loadMore = () => {
     if (gazetteLoadingMore || !gazetteActors.length) return;
     gazetteLoadingMore = true;
-    appendGazetteBatch(gazetteActors.length);
+    appendFloatBatch(Math.max(gazetteActors.length, 4));
     requestAnimationFrame(() => { gazetteLoadingMore = false; });
   };
 
-  const observer = new IntersectionObserver(
-    (entries) => { if (entries[0].isIntersecting) loadMore(); },
-    { root: null, rootMargin: "200px", threshold: 0 },
-  );
-  observer.observe(sentinel);
+  if (sentinel) {
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) loadMore(); },
+      { root: null, rootMargin: "300px", threshold: 0 },
+    );
+    observer.observe(sentinel);
+  }
+
+  window.addEventListener("scroll", () => {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 120) {
+      loadMore();
+    }
+  }, { passive: true });
 }
 
 async function initGazetteLanding() {
-  const feed = document.getElementById("classifieds-feed");
-  if (!feed) return;
-
-  feed.innerHTML = `<p class="classified-status">LOADING CLASSIFIEDS...</p>`;
+  const stage = document.getElementById("gazette-float-stage");
+  if (!stage || gazetteActors.length) return;
 
   try {
     gazetteActors = await apiGetAtores();
-    feed.innerHTML = "";
+    if (!gazetteActors.length) return;
 
-    if (!gazetteActors.length) {
-      feed.innerHTML = `<p class="classified-status">NO COMPANIONS LISTED TODAY.</p>`;
-      return;
-    }
-
-    appendGazetteBatch(Math.min(gazetteActors.length, 6));
+    appendFloatBatch(Math.min(gazetteActors.length, 8));
+    appendFloatBatch(Math.min(gazetteActors.length, 6));
     setupGazetteInfiniteScroll();
   } catch (err) {
     console.error("[Gazette]", err);
-    feed.innerHTML = `<p class="classified-status">COULD NOT LOAD CLASSIFIEDS.</p>`;
   }
 }
 
-function initAuthApp() {
-  const authScreen = document.getElementById("auth-screen");
-  if (!authScreen) return;
-
+document.addEventListener("DOMContentLoaded", () => {
   const stored = localStorage.getItem(LS_KEY);
   if (stored) {
     try {
@@ -611,14 +656,6 @@ function initAuthApp() {
     }
   }
 
-  authScreen.classList.remove("hidden");
-  populateLoginSelect();
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  if (document.getElementById("classifieds-feed")) {
-    initGazetteLanding();
-    return;
-  }
-  initAuthApp();
+  showGazetteView();
+  initGazetteLanding();
 });
