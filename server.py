@@ -1,12 +1,3 @@
-"""
-CompanionMatch — FastAPI Backend  v0.4.0
-  - Haversine distance filter on GET /api/swipes/actors (?raio_km=)
-  - Registration: POST /api/clientes  POST /api/atores
-  - Bio fields on Clientes + Atores
-  - Provider view returns client bio (what they want)
-  - OpenAI DALL-E 3 avatar generation (DiceBear fallback)
-  - 50 % match probability + ERD auto-insert
-"""
 
 from __future__ import annotations
 
@@ -26,12 +17,7 @@ import db.models as M
 
 app = FastAPI(title="CompanionMatch API", version="0.4.0")
 
-# ═══════════════════════════════════════════════════
-# Geolocation — Haversine
-# ═══════════════════════════════════════════════════
-
 def haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """Return great-circle distance in km between two (lat, lon) points."""
     R = 6371.0
     p1, p2 = math.radians(lat1), math.radians(lat2)
     dp = math.radians(lat2 - lat1)
@@ -39,12 +25,7 @@ def haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
-# ═══════════════════════════════════════════════════
-# DALL-E avatar generation
-# ═══════════════════════════════════════════════════
-
 def generate_avatar(gender: str, nationality: str, name: str = "") -> str:
-    """Generate via DALL-E 3; fall back to DiceBear SVG."""
     fallback = f"https://api.dicebear.com/7.x/bottts/svg?seed={name or nationality}"
     key = os.getenv("OPENAI_API_KEY")
     if not key:
@@ -66,10 +47,6 @@ def generate_avatar(gender: str, nationality: str, name: str = "") -> str:
         print(f"[DALL-E] {name}: {exc}")
         return fallback
 
-# ═══════════════════════════════════════════════════
-# Pydantic schemas
-# ═══════════════════════════════════════════════════
-
 class ClienteOut(BaseModel):
     id_cliente: int
     nome:       str
@@ -81,7 +58,6 @@ class ClienteOut(BaseModel):
     telegram:   Optional[str]   = None
     model_config = {"from_attributes": True}
 
-
 class ClienteCreate(BaseModel):
     nome:      str
     cidade:    str
@@ -91,15 +67,12 @@ class ClienteCreate(BaseModel):
     longitude: Optional[float] = None
     telegram:  Optional[str]   = None
 
-
 class ClienteSummaryOut(BaseModel):
-    """Minimal client info returned inside PedidoRequestOut."""
     id_cliente: int
     nome:       str
     bio:        Optional[str] = None
     telegram:   Optional[str] = None
     model_config = {"from_attributes": True}
-
 
 class AtorOut(BaseModel):
     id_ator:       int
@@ -109,10 +82,11 @@ class AtorOut(BaseModel):
     genero:        Optional[str]   = "neutral"
     avatar_url:    Optional[str]   = None
     bio:           Optional[str]   = None
-    distancia_km:  Optional[float] = None   # computed, not stored
+    latitude:      Optional[float] = None
+    longitude:     Optional[float] = None
+    distancia_km:  Optional[float] = None
     telegram:      Optional[str]   = None
     model_config = {"from_attributes": True}
-
 
 class AtorCreate(BaseModel):
     nome:          str
@@ -124,14 +98,12 @@ class AtorCreate(BaseModel):
     longitude:     Optional[float] = None
     telegram:      Optional[str]   = None
 
-
 class PedidoOut(BaseModel):
     id_pedido:   int
     id_cliente:  int
     data_pedido: date
     status:      str
     model_config = {"from_attributes": True}
-
 
 class PedidoRequestOut(BaseModel):
     id_pedido:   int
@@ -140,28 +112,23 @@ class PedidoRequestOut(BaseModel):
     ator:        AtorOut
     cliente:     ClienteSummaryOut
 
-
 class PedidoStatusUpdate(BaseModel):
     status: str
-
 
 class TipoEventoOut(BaseModel):
     id_tipo:  int
     descricao: str
     model_config = {"from_attributes": True}
 
-
 class PapelOut(BaseModel):
     id_papel:  int
     descricao: str
     model_config = {"from_attributes": True}
 
-
 class SwipeRequest(BaseModel):
     id_cliente: int
     id_ator:    int
     direcao:    Literal["like", "dislike"]
-
 
 class SwipeResponse(BaseModel):
     id_cliente: int
@@ -169,10 +136,6 @@ class SwipeResponse(BaseModel):
     direcao:    str
     matched:    bool          = False
     id_pedido:  Optional[int] = None
-
-# ═══════════════════════════════════════════════════
-# Registration
-# ═══════════════════════════════════════════════════
 
 @app.post(
     "/api/clientes",
@@ -188,7 +151,6 @@ def create_cliente(body: ClienteCreate, db: Session = Depends(get_db)):
     db.refresh(obj)
     return obj
 
-
 @app.post(
     "/api/atores",
     response_model=AtorOut,
@@ -203,10 +165,6 @@ def create_ator(body: AtorCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(obj)
     return AtorOut.model_validate(obj)
-
-# ═══════════════════════════════════════════════════
-# Swipe endpoints
-# ═══════════════════════════════════════════════════
 
 @app.get(
     "/api/swipes/actors",
@@ -231,7 +189,6 @@ def get_actors_for_swipe(
         .all()
     )
 
-    # Lazy-generate missing avatars in one batch
     updated = False
     for a in actors:
         if not a.avatar_url:
@@ -251,7 +208,7 @@ def get_actors_for_swipe(
             dist = round(haversine(c_lat, c_lon, a.latitude, a.longitude), 1)
 
         if raio_km is not None and dist is not None and dist > raio_km:
-            continue  # outside requested radius
+            continue
 
         result.append(AtorOut(
             id_ator=a.id_ator,
@@ -265,10 +222,8 @@ def get_actors_for_swipe(
             telegram=a.telegram,
         ))
 
-    # Closest first
     result.sort(key=lambda x: x.distancia_km if x.distancia_km is not None else float("inf"))
     return result
-
 
 @app.post(
     "/api/swipes",
@@ -331,7 +286,6 @@ def post_swipe(body: SwipeRequest, db: Session = Depends(get_db)):
         id_pedido=id_pedido,
     )
 
-
 @app.delete(
     "/api/swipes/reset",
     summary="Clear all swipes for a client (start over)",
@@ -341,7 +295,6 @@ def reset_swipes(id_cliente: int = Query(...), db: Session = Depends(get_db)):
     deleted = db.query(M.Swipe).filter_by(id_cliente=id_cliente).delete()
     db.commit()
     return {"deleted": deleted}
-
 
 @app.get(
     "/api/swipes/matches",
@@ -365,10 +318,6 @@ def get_matches(id_cliente: int = Query(...), db: Session = Depends(get_db)):
         .subquery()
     )
     return db.query(M.Ator).filter(M.Ator.id_ator.in_(mutual_ids)).all()
-
-# ═══════════════════════════════════════════════════
-# Pedidos — provider view
-# ═══════════════════════════════════════════════════
 
 @app.get(
     "/api/pedidos/requests",
@@ -405,7 +354,6 @@ def get_matched_requests(
         for pedido, ator, cliente in q.all()
     ]
 
-
 @app.put(
     "/api/pedidos/{id_pedido}",
     response_model=PedidoOut,
@@ -425,14 +373,9 @@ def update_pedido(
     db.refresh(pedido)
     return pedido
 
-# ═══════════════════════════════════════════════════
-# Reference endpoints
-# ═══════════════════════════════════════════════════
-
 @app.get("/api/clientes",              response_model=list[ClienteOut], tags=["Clientes"])
 def list_clientes(db: Session = Depends(get_db)):
     return db.query(M.Cliente).all()
-
 
 @app.get("/api/clientes/{id_cliente}", response_model=ClienteOut,      tags=["Clientes"])
 def get_cliente(id_cliente: int, db: Session = Depends(get_db)):
@@ -441,11 +384,9 @@ def get_cliente(id_cliente: int, db: Session = Depends(get_db)):
         raise HTTPException(404, "Cliente not found")
     return obj
 
-
 @app.get("/api/atores",                response_model=list[AtorOut],   tags=["Atores"])
 def list_atores(db: Session = Depends(get_db)):
     return db.query(M.Ator).all()
-
 
 @app.get("/api/atores/{id_ator}",      response_model=AtorOut,         tags=["Atores"])
 def get_ator(id_ator: int, db: Session = Depends(get_db)):
@@ -454,16 +395,13 @@ def get_ator(id_ator: int, db: Session = Depends(get_db)):
         raise HTTPException(404, "Ator not found")
     return obj
 
-
 @app.get("/api/tipos-evento", response_model=list[TipoEventoOut], tags=["Tipos Evento"])
 def list_tipos_evento(db: Session = Depends(get_db)):
     return db.query(M.TipoEvento).all()
 
-
 @app.get("/api/papeis", response_model=list[PapelOut], tags=["Papeis"])
 def list_papeis(db: Session = Depends(get_db)):
     return db.query(M.Papel).all()
-
 
 @app.get("/api/health", tags=["System"])
 def health(db: Session = Depends(get_db)):
@@ -476,7 +414,4 @@ def health(db: Session = Depends(get_db)):
         "matches":   db.query(M.Pedido).filter_by(status="Matched").count(),
     }
 
-# ═══════════════════════════════════════════════════
-# Static files — LAST
-# ═══════════════════════════════════════════════════
 app.mount("/", StaticFiles(directory="client", html=True), name="static")

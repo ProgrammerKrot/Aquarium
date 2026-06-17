@@ -1,36 +1,17 @@
 "use strict";
 
-/* ═══════════════════════════════════════════════════
-   Aquarium — main.js  v0.5.0
-   Auth · Geolocation filter · Bios · Dynamic user id
-   Fish = clients looking for a fish job
-   Coral Opportunist = actors offering fish jobs
-   ═══════════════════════════════════════════════════ */
-
 const API_BASE    = "";
 const LS_KEY      = "aquarium_user";
 
-// ── Auth state ────────────────────────────────────
-/**
- * @typedef {{ id: number, nome: string, type: 'cliente'|'ator' }} AppUser
- * @type {AppUser|null}
- */
 let loggedUser  = null;
 
-// Auth UI
-let loginType = "cliente";   // selected in Login tab
-let regType   = "cliente";   // selected in Register tab
+let loginType = "cliente";   
+let regType   = "cliente";   
 
-// ── Swipe state ───────────────────────────────────
-/** @type {import('./main.js').Actor[]} */
 let actorQueue   = [];
 let currentIdx   = 0;
 let activeMode   = "customer";
 let customerView = "swipe";
-
-// ═══════════════════════════════════════════════════
-// API
-// ═══════════════════════════════════════════════════
 
 async function apiFetch(path, opts = {}) {
   const r = await fetch(API_BASE + path, opts);
@@ -48,7 +29,7 @@ function apiGetActors(raio_km) {
 }
 
 function _clienteId() {
-  // Actors get a linked cliente_id on registration; seed actors fall back to 1 (demo)
+  
   if (loggedUser.type === "ator") return loggedUser.cliente_id ?? 1;
   return loggedUser.id;
 }
@@ -91,10 +72,6 @@ const apiCreateAtor = (body) =>
     body:    JSON.stringify(body),
   });
 
-// ═══════════════════════════════════════════════════
-// Toast
-// ═══════════════════════════════════════════════════
-
 function showToast(msg, ms = 1800) {
   let t = document.getElementById("global-toast");
   if (!t) {
@@ -107,10 +84,6 @@ function showToast(msg, ms = 1800) {
   t._timer = setTimeout(() => t.classList.remove("visible"), ms);
 }
 
-// ═══════════════════════════════════════════════════
-// Auth Screen
-// ═══════════════════════════════════════════════════
-
 function switchAuthTab(tab) {
   const isLogin = tab === "login";
   document.getElementById("tab-login").classList.toggle("auth-tab-active",    isLogin);
@@ -118,8 +91,6 @@ function switchAuthTab(tab) {
   document.getElementById("auth-login").classList.toggle("hidden",    !isLogin);
   document.getElementById("auth-register").classList.toggle("hidden",  isLogin);
 }
-
-// ── Login tab ─────────────────────────────────────
 
 function setLoginType(type) {
   loginType = type;
@@ -156,8 +127,6 @@ function doLogin() {
   const nome = select.options[select.selectedIndex].text;
   _saveUser({ id, nome, type: loginType });
 }
-
-// ── Register tab ──────────────────────────────────
 
 function setRegType(type) {
   regType = type;
@@ -204,8 +173,6 @@ async function doRegister() {
   }
 }
 
-// ── Shared helpers ────────────────────────────────
-
 function _saveUser(user) {
   loggedUser = user;
   localStorage.setItem(LS_KEY, JSON.stringify(user));
@@ -219,14 +186,8 @@ function doLogout() {
   currentIdx   = 0;
   _allClientes = [];
   _allAtores   = [];
-  document.getElementById("app-shell").classList.add("hidden");
-  document.getElementById("auth-screen").classList.remove("hidden");
-  populateLoginSelect();
+  window.location.href = "index.html";
 }
-
-// ═══════════════════════════════════════════════════
-// Enter App
-// ═══════════════════════════════════════════════════
 
 async function enterApp() {
   document.getElementById("auth-screen").classList.add("hidden");
@@ -235,7 +196,7 @@ async function enterApp() {
 
   const isAtor = loggedUser.type === "ator";
 
-  // Each role gets only its own tab; the other is locked
+  
   const segCustomer = document.getElementById("seg-customer");
   const segProvider = document.getElementById("seg-provider");
   segCustomer.disabled = isAtor;
@@ -243,7 +204,7 @@ async function enterApp() {
   segCustomer.title = isAtor  ? "Fish mode is for Fish accounts only" : "";
   segProvider.title = !isAtor ? "Coral Opportunist mode is for Coral Opportunist accounts only" : "";
 
-  // Update role info banner
+  
   const banner = document.getElementById("role-info-text");
   if (banner) {
     banner.innerHTML = isAtor
@@ -255,10 +216,6 @@ async function enterApp() {
   setSegment(defaultMode);
   if (defaultMode === "customer") await reloadActors();
 }
-
-// ═══════════════════════════════════════════════════
-// Segment Control
-// ═══════════════════════════════════════════════════
 
 function setSegment(mode) {
   activeMode = mode;
@@ -300,10 +257,6 @@ function showCustomerView(view) {
   if (view === "matches") loadMatches();
 }
 
-// ═══════════════════════════════════════════════════
-// Radius Slider
-// ═══════════════════════════════════════════════════
-
 function onRadiusChange() {
   document.getElementById("radius-value").textContent =
     document.getElementById("radius-slider").value;
@@ -324,10 +277,6 @@ async function reloadActors() {
     showToast("Could not reload actors");
   }
 }
-
-// ═══════════════════════════════════════════════════
-// Swipe Card
-// ═══════════════════════════════════════════════════
 
 function renderCurrentCard() {
   const card     = document.getElementById("swipe-card");
@@ -354,7 +303,7 @@ function renderCurrentCard() {
     `${actor.idade ?? "?"}yrs · ${actor.nacionalidade ?? "—"}`;
   document.getElementById("actor-bio").textContent  = actor.bio || "";
 
-  // Distance badge
+  
   const distEl = document.getElementById("actor-distance");
   if (actor.distancia_km != null) {
     distEl.textContent = `📍 ${actor.distancia_km} km away`;
@@ -363,7 +312,7 @@ function renderCurrentCard() {
     distEl.classList.add("hidden");
   }
 
-  // Avatar
+  
   const ring = document.getElementById("avatar-ring");
   if (actor.avatar_url) {
     ring.style.backgroundImage = `url('${actor.avatar_url}')`;
@@ -375,10 +324,6 @@ function renderCurrentCard() {
     eyes.classList.remove("hidden");
   }
 }
-
-// ═══════════════════════════════════════════════════
-// Swipe Handler
-// ═══════════════════════════════════════════════════
 
 async function handleSwipe(direction) {
   if (currentIdx >= actorQueue.length) return;
@@ -401,10 +346,6 @@ async function handleSwipe(direction) {
   renderCurrentCard();
 }
 
-// ═══════════════════════════════════════════════════
-// Match Overlay
-// ═══════════════════════════════════════════════════
-
 function showMatchOverlay(actor, id_pedido) {
   const overlay  = document.getElementById("match-overlay");
   const avatarEl = document.getElementById("match-avatar-lg");
@@ -420,10 +361,6 @@ function showMatchOverlay(actor, id_pedido) {
 function closeMatchOverlay() {
   document.getElementById("match-overlay").classList.add("hidden");
 }
-
-// ═══════════════════════════════════════════════════
-// Matches Panel (Customer)
-// ═══════════════════════════════════════════════════
 
 async function loadMatches() {
   const list = document.getElementById("matches-list");
@@ -455,10 +392,6 @@ async function loadMatches() {
     list.innerHTML = `<li class="list-placeholder list-error">Failed to load matches.</li>`;
   }
 }
-
-// ═══════════════════════════════════════════════════
-// Provider Panel
-// ═══════════════════════════════════════════════════
 
 async function loadProviderRequests() {
   const list = document.getElementById("requests-list");
@@ -513,10 +446,6 @@ async function confirmService(id_pedido) {
   }
 }
 
-// ═══════════════════════════════════════════════════
-// Reset swipes
-// ═══════════════════════════════════════════════════
-
 async function resetSwipes() {
   try {
     await apiFetch(`/api/swipes/reset?id_cliente=${_clienteId()}`, { method: "DELETE" });
@@ -527,10 +456,6 @@ async function resetSwipes() {
     showToast("Could not reset swipes");
   }
 }
-
-// ═══════════════════════════════════════════════════
-// Browser Geolocation helper
-// ═══════════════════════════════════════════════════
 
 function fillBrowserLocation() {
   if (!navigator.geolocation) {
@@ -555,20 +480,145 @@ function fillBrowserLocation() {
   );
 }
 
-// ═══════════════════════════════════════════════════
-// Bootstrap
-// ═══════════════════════════════════════════════════
+const GAZETTE_REF_LAT = 38.7169;
+const GAZETTE_REF_LON = -9.1399;
 
-document.addEventListener("DOMContentLoaded", () => {
+function escapeHtml(text) {
+  return String(text ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function gazetteHaversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const toRad = (d) => (d * Math.PI) / 180;
+  const p1 = toRad(lat1);
+  const p2 = toRad(lat2);
+  const dp = toRad(lat2 - lat1);
+  const dl = toRad(lon2 - lon1);
+  const a = Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function formatGazetteLocation(actor) {
+  if (actor.distancia_km != null) {
+    return `LOCATION: ${actor.distancia_km} km away`;
+  }
+  if (actor.latitude != null && actor.longitude != null) {
+    const km = gazetteHaversineKm(GAZETTE_REF_LAT, GAZETTE_REF_LON, actor.latitude, actor.longitude);
+    return `LOCATION: ${km.toFixed(1)} km away`;
+  }
+  return "LOCATION: unavailable";
+}
+
+function goToLogin() {
+  window.location.href = "login.html";
+}
+
+function buildClassifiedAd(actor) {
+  const article = document.createElement("article");
+  article.className = "classified-ad";
+  article.tabIndex = 0;
+  article.setAttribute("role", "button");
+  article.innerHTML = `
+    <p class="classified-ad-name">${escapeHtml(actor.nome)}</p>
+    <p class="classified-ad-meta">AGE: ${escapeHtml(actor.idade)} · NATIONALITY: ${escapeHtml(actor.nacionalidade)}</p>
+    <p class="classified-ad-bio">WHAT I CAN DO: ${escapeHtml(actor.bio || "No description provided.")}</p>
+    <p class="classified-ad-loc">${formatGazetteLocation(actor)}</p>
+  `;
+  article.addEventListener("click", goToLogin);
+  article.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      goToLogin();
+    }
+  });
+  return article;
+}
+
+let gazetteActors = [];
+let gazetteCycleIdx = 0;
+let gazetteLoadingMore = false;
+
+function appendGazetteBatch(count) {
+  const feed = document.getElementById("classifieds-feed");
+  if (!feed || !gazetteActors.length) return;
+
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < count; i++) {
+    const actor = gazetteActors[gazetteCycleIdx % gazetteActors.length];
+    gazetteCycleIdx += 1;
+    frag.appendChild(buildClassifiedAd(actor));
+  }
+  feed.appendChild(frag);
+}
+
+function setupGazetteInfiniteScroll() {
+  const sentinel = document.getElementById("classifieds-sentinel");
+  if (!sentinel) return;
+
+  const loadMore = () => {
+    if (gazetteLoadingMore || !gazetteActors.length) return;
+    gazetteLoadingMore = true;
+    appendGazetteBatch(gazetteActors.length);
+    requestAnimationFrame(() => { gazetteLoadingMore = false; });
+  };
+
+  const observer = new IntersectionObserver(
+    (entries) => { if (entries[0].isIntersecting) loadMore(); },
+    { root: null, rootMargin: "200px", threshold: 0 },
+  );
+  observer.observe(sentinel);
+}
+
+async function initGazetteLanding() {
+  const feed = document.getElementById("classifieds-feed");
+  if (!feed) return;
+
+  feed.innerHTML = `<p class="classified-status">LOADING CLASSIFIEDS...</p>`;
+
+  try {
+    gazetteActors = await apiGetAtores();
+    feed.innerHTML = "";
+
+    if (!gazetteActors.length) {
+      feed.innerHTML = `<p class="classified-status">NO COMPANIONS LISTED TODAY.</p>`;
+      return;
+    }
+
+    appendGazetteBatch(Math.min(gazetteActors.length, 6));
+    setupGazetteInfiniteScroll();
+  } catch (err) {
+    console.error("[Gazette]", err);
+    feed.innerHTML = `<p class="classified-status">COULD NOT LOAD CLASSIFIEDS.</p>`;
+  }
+}
+
+function initAuthApp() {
+  const authScreen = document.getElementById("auth-screen");
+  if (!authScreen) return;
+
   const stored = localStorage.getItem(LS_KEY);
   if (stored) {
     try {
       loggedUser = JSON.parse(stored);
       enterApp();
       return;
-    } catch { localStorage.removeItem(LS_KEY); }
+    } catch {
+      localStorage.removeItem(LS_KEY);
+    }
   }
-  // Show auth screen
-  document.getElementById("auth-screen").classList.remove("hidden");
+
+  authScreen.classList.remove("hidden");
   populateLoginSelect();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (document.getElementById("classifieds-feed")) {
+    initGazetteLanding();
+    return;
+  }
+  initAuthApp();
 });
