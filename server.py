@@ -424,4 +424,9 @@ async def serve_index():
     return FileResponse(CLIENT_DIR / "index.html", media_type="text/html; charset=utf-8")
 
 
+@app.get("/aquarium")
+async def serve_aquarium():
+    return FileResponse(CLIENT_DIR / "index.html", media_type="text/html; charset=utf-8")
+
+
 app.mount("/static", StaticFiles(directory=str(CLIENT_DIR)), name="static")
