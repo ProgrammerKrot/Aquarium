@@ -951,9 +951,64 @@ body.app-mode .ambient-card {
 }
 
 .gazette-header {
+  position: relative;
   text-align: center;
   padding-top: 8px;
   margin-bottom: 16px;
+}
+
+.gazette-header .lang-switcher {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.lang-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid #1A1A1A;
+  background: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.lang-btn {
+  padding: 5px 7px;
+  border: none;
+  background: #FFFFFF;
+  color: #1A1A1A;
+  font: inherit;
+  cursor: pointer;
+}
+
+.lang-btn:hover {
+  background: #F0F0F0;
+}
+
+.lang-btn.lang-active {
+  background: #1A1A1A;
+  color: #FFFFFF;
+}
+
+.lang-sep {
+  color: #1A1A1A;
+  font-weight: 400;
+  user-select: none;
+}
+
+.app-header .header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-header .lang-switcher {
+  flex-shrink: 0;
 }
 
 .gazette-masthead {
@@ -1060,6 +1115,15 @@ body.app-mode .ambient-card {
 
 .classifieds-sentinel {
   height: 1px;
+}
+
+@media (max-width: 420px) {
+  .gazette-header .lang-switcher {
+    position: static;
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+  }
 }
 
 @media (min-width: 500px) {
