@@ -957,12 +957,6 @@ body.app-mode .ambient-card {
   margin-bottom: 16px;
 }
 
-.gazette-header .lang-switcher {
-  position: absolute;
-  top: 0;
-  right: 0;
-}
-
 .lang-switcher {
   display: inline-flex;
   align-items: center;
@@ -1040,12 +1034,20 @@ body.app-mode .ambient-card {
 }
 
 .landing-column .auth-card {
+  position: relative;
   width: 100%;
   max-width: none;
   border: 2px solid #1A1A1A;
   border-radius: 0;
   background: #FFFFFF;
   padding: 24px 20px 20px;
+}
+
+.lang-switcher-auth {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
 }
 
 .landing-column .auth-card.auth-flash {
@@ -1115,15 +1117,6 @@ body.app-mode .ambient-card {
 
 .classifieds-sentinel {
   height: 1px;
-}
-
-@media (max-width: 420px) {
-  .gazette-header .lang-switcher {
-    position: static;
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 10px;
-  }
 }
 
 @media (min-width: 500px) {

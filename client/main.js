@@ -330,8 +330,8 @@ const translations = {
     status_confirmed: "Konfime",
   },
   by: {
-    page_title: "Akvaryumnaja Hazeta",
-    gazette_masthead: "AKVARYUMNAJA HAZETA",
+    page_title: "Hazeta Akvaryum",
+    gazette_masthead: "HAZETA AKVARYUM",
     gazette_vol: "TOM I № 1",
     gazette_price: "KOSZT: 10.00$",
     gazette_meta: "Štodzionnyja Ab'javy dla Ryb i Karalavych Apurtunistaŭ",
